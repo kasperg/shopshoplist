@@ -1,6 +1,7 @@
 <?php 
 
 use Symfony\Component\ClassLoader\UniversalClassLoader;
+use Symfony\Component\Yaml\Yaml;
 
 //Setup Symfony classloader and components
 require_once __DIR__.'/vendor/Symfony/Component/ClassLoader/UniversalClassLoader.php';
@@ -21,28 +22,47 @@ require_once __DIR__.'/vendor/silex/silex.phar';
 
 $app = new Silex\Application();
 
+//Silex session support is broken, so use regular session instead
+//https://github.com/fabpot/Silex/issues/112
+//$app->register(new Silex\Extension\SessionExtension());
+session_start();
+
+$app->before(function () use ($app) {
+  $app['config'] = Yaml::parse(__DIR__ . '/config/shopshoplist.yaml');
+  $app['oauth'] = new Dropbox_OAuth_PHP($app['config']['dropbox']['consumer_key'], $app['config']['dropbox']['consumer_secret']);
+  $app['dropbox'] = new Dropbox_API($app['oauth']);
+});
+
 $app->get('/', function () use ($app) {
-    return 'Frontpage';
+    return '<h1>Frontpage</h1><a href="login">Log in using Dropbox</a>';
+});
+
+
+$app->get('/login', function () use ($app) {
+  //Silex session support is broken, so use regular session instead
+  //$app['session']->set('oauth_tokens', $app['oauth']->getRequestToken());
+  $_SESSION['oauth_tokens'] = $app['oauth']->getRequestToken();
+  return $app->redirect($app['oauth']->getAuthorizeUrl('http://localhost/ssl/auth'));
+});
+
+$app->get('/auth', function () use ($app) {
+  //Silex session support is broken, so use regular session instead
+  //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
+  $app['oauth']->setToken($_SESSION['oauth_tokens']);
+  $_SESSION['oauth_tokens'] = $app['oauth']->getAccessToken();
+  return $app->redirect('http://localhost/ssl/lists');
 });
 
 $app->get('/lists', function () use ($app) {
-  $oauth = new Dropbox_OAuth_PHP('a', 'b');
-  $dropbox = new Dropbox_API($oauth);
-
-  $tokens = $dropbox->getToken('foo', 'bar');
-
-  // You are recommended to save these tokens, note that you don't
-  // need to save the username and password, so just ask your user the 
-  // first time and then destroy them.
-
-  $oauth->setToken($tokens);
+  //Silex session support is broken, so use regular session instead
+  //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
+  $app['oauth']->setToken($_SESSION['oauth_tokens']);
   
   $output = '';
-  
-  $dir = $dropbox->getMetaData('ShopShop',false);
+  $dir = $app['dropbox']->getMetaData('ShopShop',false);
   foreach ($dir['contents'] as $file) {
     $plist = new CFPropertyList();
-    $plist->parse($dropbox->getFile($file['path']), CFPropertyList::FORMAT_BINARY);
+    $plist->parse($app['dropbox']->getFile($file['path']), CFPropertyList::FORMAT_BINARY);
     
     $output .= '<h1>' . array_shift(explode('.', basename($file['path']), 2)) . '</h1>';
     
@@ -56,7 +76,6 @@ $app->get('/lists', function () use ($app) {
     }
     $output .= '</ul>';
   }
-  
   return $output;
 });
 
