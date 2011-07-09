@@ -3,7 +3,7 @@
 use Symfony\Component\ClassLoader\UniversalClassLoader;
 use Symfony\Component\Yaml\Yaml;
 
-//Setup Symfony classloader and components
+// Setup Symfony classloader and components
 require_once __DIR__.'/vendor/Symfony/Component/ClassLoader/UniversalClassLoader.php';
 $loader = new UniversalClassLoader();
 $loader->registerNamespaces(array(
@@ -11,18 +11,18 @@ $loader->registerNamespaces(array(
 ));
 $loader->register();
 
-//Setup Dropbox autoloader
+// Setup Dropbox autoloader
 require_once __DIR__.'/vendor/dropbox/autoload.php';
 
-//Load CFPropertyList
+// Load CFPropertyList
 require_once __DIR__.'/vendor/cfpropertylist/CFPropertyList.php';
 
-//Load Silex
+// Load Silex
 require_once __DIR__.'/vendor/silex/silex.phar';
 
 $app = new Silex\Application();
 
-//Silex session support is broken, so use regular session instead
+// Silex session support is broken, so use regular session instead
 //https://github.com/fabpot/Silex/issues/112
 //$app->register(new Silex\Extension\SessionExtension());
 session_start();
@@ -34,6 +34,7 @@ $app->before(function () use ($app) {
   $config = $config_path . ((is_readable($config_path . 'shopshoplist.yaml')) ? 'shopshoplist.yaml' : 'shopshoplist.default.yaml');
   $app['config'] = Yaml::parse($config);
   
+  // Setup Dropbox OAuth access
   $app['oauth'] = new Dropbox_OAuth_PHP($app['config']['dropbox']['consumer_key'], $app['config']['dropbox']['consumer_secret']);
   $app['dropbox'] = new Dropbox_API($app['oauth']);
 });
@@ -44,14 +45,16 @@ $app->get('/', function () use ($app) {
 
 
 $app->get('/login', function () use ($app) {
-  //Silex session support is broken, so use regular session instead
+  // Silex session support is broken, so use regular session instead
   //$app['session']->set('oauth_tokens', $app['oauth']->getRequestToken());
   $_SESSION['oauth_tokens'] = $app['oauth']->getRequestToken();
   return $app->redirect($app['oauth']->getAuthorizeUrl('http://localhost/ssl/auth'));
 });
+  // Redirect to Dropbox auth URL with app auth URL as callback
+  return $app->redirect($app['oauth']->getAuthorizeUrl($app['url_generator']->generate('auth', array(), TRUE)));
 
 $app->get('/auth', function () use ($app) {
-  //Silex session support is broken, so use regular session instead
+  // Silex session support is broken, so use regular session instead
   //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
   $app['oauth']->setToken($_SESSION['oauth_tokens']);
   $_SESSION['oauth_tokens'] = $app['oauth']->getAccessToken();
@@ -59,7 +62,7 @@ $app->get('/auth', function () use ($app) {
 });
 
 $app->get('/lists', function () use ($app) {
-  //Silex session support is broken, so use regular session instead
+  // Silex session support is broken, so use regular session instead
   //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
   $app['oauth']->setToken($_SESSION['oauth_tokens']);
   
