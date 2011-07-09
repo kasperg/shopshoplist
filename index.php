@@ -21,6 +21,7 @@ require_once __DIR__.'/vendor/cfpropertylist/CFPropertyList.php';
 require_once __DIR__.'/vendor/silex/silex.phar';
 
 $app = new Silex\Application();
+$app->register(new Silex\Extension\UrlGeneratorExtension());
 
 // Silex session support is broken, so use regular session instead
 //https://github.com/fabpot/Silex/issues/112
@@ -40,26 +41,28 @@ $app->before(function () use ($app) {
 });
 
 $app->get('/', function () use ($app) {
-    return '<h1>Frontpage</h1><a href="login">Log in using Dropbox</a>';
-});
+    return '<h1>Frontpage</h1><a href="' . $app['url_generator']->generate('login')  . '">Log in using Dropbox</a>';
+})->bind('frontpage');
 
 
 $app->get('/login', function () use ($app) {
   // Silex session support is broken, so use regular session instead
   //$app['session']->set('oauth_tokens', $app['oauth']->getRequestToken());
   $_SESSION['oauth_tokens'] = $app['oauth']->getRequestToken();
-  return $app->redirect($app['oauth']->getAuthorizeUrl('http://localhost/ssl/auth'));
-});
+  
   // Redirect to Dropbox auth URL with app auth URL as callback
   return $app->redirect($app['oauth']->getAuthorizeUrl($app['url_generator']->generate('auth', array(), TRUE)));
+})->bind('login');
 
 $app->get('/auth', function () use ($app) {
   // Silex session support is broken, so use regular session instead
   //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
   $app['oauth']->setToken($_SESSION['oauth_tokens']);
   $_SESSION['oauth_tokens'] = $app['oauth']->getAccessToken();
-  return $app->redirect('http://localhost/ssl/lists');
-});
+  
+  // We have a succesfull login so redirect to the lists page
+  return $app->redirect($app['url_generator']->generate('lists'));
+})->bind('auth');
 
 $app->get('/lists', function () use ($app) {
   // Silex session support is broken, so use regular session instead
@@ -85,11 +88,11 @@ $app->get('/lists', function () use ($app) {
     $output .= '</ul>';
   }
   return $output;
-});
+})->bind('lists');
 
 $app->get('/list/{name}', function ($name) use ($app) {
     return 'Frontpage';
-});
+})->bind('list');
 
 
 $app->run();
