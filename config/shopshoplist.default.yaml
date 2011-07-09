@@ -1,3 +1,9 @@
 dropbox:
-  consumer_key: yourkey
-  consumer_secret: yoursecret
+  consumer_key:     %dropbox_consumer_key%
+  consumer_secret:  %dropbox_consumer_secret%
+
+database:
+  name:     %database_name%
+  user:     %database_user%
+  password: %database_password%
+  socket:   %database_socket%

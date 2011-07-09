@@ -28,7 +28,12 @@ $app = new Silex\Application();
 session_start();
 
 $app->before(function () use ($app) {
-  $app['config'] = Yaml::parse(__DIR__ . '/config/shopshoplist.yaml');
+  // Load the configuration. Fallback to default using environment variabels.
+  // These can be provided by PagodaBox.
+  $config_path = __DIR__ . '/config/';
+  $config = $config_path . ((is_readable($config_path . 'shopshoplist.yaml')) ? 'shopshoplist.yaml' : 'shopshoplist.default.yaml');
+  $app['config'] = Yaml::parse($config);
+  
   $app['oauth'] = new Dropbox_OAuth_PHP($app['config']['dropbox']['consumer_key'], $app['config']['dropbox']['consumer_secret']);
   $app['dropbox'] = new Dropbox_API($app['oauth']);
 });
