@@ -4,19 +4,19 @@ use Symfony\Component\ClassLoader\UniversalClassLoader;
 use Symfony\Component\Yaml\Yaml;
 
 // Setup Dropbox autoloader
-require_once __DIR__.'/vendor/dropbox/autoload.php';
+require_once __DIR__.'/../vendor/dropbox/autoload.php';
 
 // Load CFPropertyList
-require_once __DIR__.'/vendor/cfpropertylist/CFPropertyList.php';
+require_once __DIR__.'/../vendor/cfpropertylist/CFPropertyList.php';
 
 // Load Silex
-require_once __DIR__.'/vendor/silex/silex.phar';
+require_once __DIR__.'/../vendor/silex/silex.phar';
 
 $app = new Silex\Application();
 $app->register(new Silex\Extension\UrlGeneratorExtension());
 // Register autoloading of Symfony components.
 // This is currently only needed for Yaml support.
-$app['autoloader']->registerNamespace('Symfony', __DIR__.'/vendor');
+$app['autoloader']->registerNamespace('Symfony', __DIR__.'/../vendor');
 
 // Silex session support is broken, so use regular session instead
 //https://github.com/fabpot/Silex/issues/112
@@ -26,7 +26,7 @@ session_start();
 $app->before(function () use ($app) {
   // Load the configuration. Fallback to default using environment variabels.
   // These can be provided by PagodaBox.
-  $config_path = __DIR__ . '/config/';
+  $config_path = __DIR__ . '/../config/';
   $config = $config_path . ((is_readable($config_path . 'shopshoplist.yaml')) ? 'shopshoplist.yaml' : 'shopshoplist.default.yaml');
   $app['config'] = Yaml::parse($config);
   

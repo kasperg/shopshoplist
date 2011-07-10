@@ -2,7 +2,7 @@
     Options -MultiViews
 
     RewriteEngine On
-    RewriteBase /shopshoplist
+    RewriteBase /shopshoplist/web
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
