@@ -3,14 +3,6 @@
 use Symfony\Component\ClassLoader\UniversalClassLoader;
 use Symfony\Component\Yaml\Yaml;
 
-// Setup Symfony classloader and components
-require_once __DIR__.'/vendor/Symfony/Component/ClassLoader/UniversalClassLoader.php';
-$loader = new UniversalClassLoader();
-$loader->registerNamespaces(array(
-  'Symfony' => __DIR__.'/vendor',
-));
-$loader->register();
-
 // Setup Dropbox autoloader
 require_once __DIR__.'/vendor/dropbox/autoload.php';
 
@@ -22,6 +14,9 @@ require_once __DIR__.'/vendor/silex/silex.phar';
 
 $app = new Silex\Application();
 $app->register(new Silex\Extension\UrlGeneratorExtension());
+// Register autoloading of Symfony components.
+// This is currently only needed for Yaml support.
+$app['autoloader']->registerNamespace('Symfony', __DIR__.'/vendor');
 
 // Silex session support is broken, so use regular session instead
 //https://github.com/fabpot/Silex/issues/112
