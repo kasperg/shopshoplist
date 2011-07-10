@@ -66,28 +66,48 @@ $app->get('/lists', function () use ($app) {
   
   $output = '';
   $dir = $app['dropbox']->getMetaData('ShopShop',false);
-  foreach ($dir['contents'] as $file) {
-    $plist = new CFPropertyList();
-    $plist->parse($app['dropbox']->getFile($file['path']), CFPropertyList::FORMAT_BINARY);
-    
-    $output .= '<h1>' . array_shift(explode('.', basename($file['path']), 2)) . '</h1>';
+  // If we only have a single list it makes little sense to show a list of them.
+  // Redirect to the list instead.
+  if (sizeof($dir['contents']) == 1) {
+    return $app->redirect($app['url_generator']->generate('list', array('name' => shopshop_list_name(array_shift($dir['contents'])))));
+  } else {
+    $output = '<h1>Lists</h1>';
     
     $output .= '<ul>';
-    $plist = $plist->toArray();
-    foreach ($plist['shoppingList'] as $entry) {
-      $output .= '<li class="' . (($entry['done']) ? 'done' : '') . '">' .
-                    (($entry['count']) ? '<span class="count">' . $entry['count'] . '</span> ' : '') . 
-                    '<span class="name">' . $entry['name'] . '</span>
-                  </li>';
+    foreach ($dir['contents'] as $file) {
+      $output .= '<li><a href="' . $app['url_generator']->generate('list', array('name' => shopshop_list_name($file))) . '">' . shopshop_list_name($file) . '</li>';
     }
-    $output .= '</ul>';
+    return $output .= '</ul>';
   }
-  return $output;
 })->bind('lists');
 
 $app->get('/list/{name}', function ($name) use ($app) {
-    return 'Frontpage';
+  // Silex session support is broken, so use regular session instead
+  //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
+  $app['oauth']->setToken($_SESSION['oauth_tokens']);
+
+  $plist = new CFPropertyList();
+  $plist->parse($app['dropbox']->getFile(shopshop_list_path($name)), CFPropertyList::FORMAT_BINARY);
+
+  $output = '<h1>' . $name . '</h1>';
+
+  $output .= '<ul>';
+  $plist = $plist->toArray();
+  foreach ($plist['shoppingList'] as $entry) {
+    $output .= '<li class="' . (($entry['done']) ? 'done' : '') . '">' .
+                  (($entry['count']) ? '<span class="count">' . $entry['count'] . '</span> ' : '') . 
+                  '<span class="name">' . $entry['name'] . '</span>
+                </li>';
+  }
+  return $output .= '</ul>';
 })->bind('list');
 
-
 $app->run();
+
+function shopshop_list_name($file) {
+  return array_shift(explode('.', basename($file['path']), 2));
+}
+
+function shopshop_list_path($name) {
+  return '/ShopShop/' . $name . '.shopshop';
+}
