@@ -70,6 +70,11 @@ $app->get('/auth', function () use ($app) {
   }
 })->bind('auth');
 
+$app->get('/logout', function () use ($app) {
+  session_destroy();
+  return $app->redirect($app['url_generator']->generate('frontpage'));
+})->bind('logout');
+
 $app->get('/list/{name}', function ($name) use ($app) {
   // Silex session support is broken, so use regular session instead
   //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
