@@ -1,8 +1,5 @@
 <?php 
 
-use Symfony\Bridge\Twig\Extension\RoutingExtension;
-use Symfony\Component\Yaml\Yaml;
-
 // Setup Dropbox autoloader
 require_once __DIR__.'/../vendor/dropbox/autoload.php';
 
@@ -12,29 +9,56 @@ require_once __DIR__.'/../vendor/cfpropertylist/CFPropertyList.php';
 // Load Silex
 require_once __DIR__.'/../vendor/silex/silex.phar';
 
+// Create the application
 $app = new Silex\Application();
-$app->register(new Silex\Extension\UrlGeneratorExtension());
-$app->register(new Silex\Extension\TwigExtension(), array(
-    'twig.path'       => __DIR__.'/../views',
-    'twig.class_path' => __DIR__.'/../vendor/twig/lib',
-));
 
-// Register autoloading of Symfony components.
-// This is currently only needed for Yaml support.
-$app['autoloader']->registerNamespace('Symfony', __DIR__.'/../vendor');
-
-$app->register(new Silex\Extension\SessionExtension());
+// Setup session handling.
+// This needs to be done before the app is run.
+$app['autoloader']->registerNamespace('LazySession', __DIR__.'/../vendor');
+$app->register(new LazySession\LazySessionExtension());
 
 $app->before(function () use ($app) {
-  // Add routing helpers in Twig here as the request context must be defined.
-  $app['twig']->addExtension(new RoutingExtension($app['url_generator']));
-  
+  // Register autoloading of Symfony components.
+  // This is currently only needed for Yaml support.
+  $app['autoloader']->registerNamespace('Symfony', __DIR__.'/../vendor');
+
   // Load the configuration. Fallback to default using environment variabels.
   // These can be provided by PagodaBox.
-  $config_path = __DIR__ . '/../config/';
-  $config = $config_path . ((is_readable($config_path . 'shopshoplist.yaml')) ? 'shopshoplist.yaml' : 'shopshoplist.default.yaml');
-  $app['config'] = Yaml::parse($config);
-  
+  $app['config'] = $app->share(function () {
+    $config_path = __DIR__ . '/../config/';
+    $config = $config_path . ((is_readable($config_path . 'shopshoplist.yaml')) ? 'shopshoplist.yaml' : 'shopshoplist.default.yaml');
+    return Symfony\Component\Yaml\Yaml::parse($config);
+  });
+
+  // Setup a PDO connection
+  $app['pdo'] = $app->share(function() use ($app) {
+    if (isset($app['config']['database']['dsn'])) {
+      $dsn = $app['config']['database']['dsn'];
+    } else {
+      $dsn = 'mysql:dbname=' . $app['config']['database']['name'] . ';unix_socket=' . $app['config']['database']['unix_socket'];
+    }
+    return new Pdo($dsn, $app['config']['database']['user'], $app['config']['database']['password']);
+  });
+
+
+  // Use database for session storage
+  $app['session.storage'] = $app->share(function () use ($app) {
+    return new Symfony\Component\HttpFoundation\SessionStorage\PdoSessionStorage( $app['pdo'], 
+                                                                                  $app['session.storage.options'], 
+                                                                                  array('db_table' =>     'session',
+                                                                                        'db_id_col' =>    'id',
+                                                                                        'db_data_col' =>  'data',
+                                                                                        'db_time_col' =>  'timestamp'));
+  });
+
+  $app->register(new Silex\Extension\UrlGeneratorExtension());
+  // Reguster Twig for templating
+  $app->register(new Silex\Extension\TwigExtension(), array(
+      'twig.path'       => __DIR__.'/../views',
+      'twig.class_path' => __DIR__.'/../vendor/twig/lib',
+  ));
+  $app['twig']->addExtension(new Symfony\Bridge\Twig\Extension\RoutingExtension($app['url_generator']));
+
   // Setup Dropbox OAuth access
   $app['oauth'] = new Dropbox_OAuth_PHP($app['config']['dropbox']['consumer_key'], $app['config']['dropbox']['consumer_secret']);
   $app['dropbox'] = new Dropbox_API($app['oauth']);
@@ -59,16 +83,29 @@ $app->get('/auth', function () use ($app) {
   // We have a succesfull login so redirect to the first list
   $dir = $app['dropbox']->getMetaData('ShopShop',false);
   if (sizeof($dir['contents'] > 0)) {
-    return $app->redirect($app['url_generator']->generate('list', array('name' => shopshop_list_name(array_shift($dir['contents'])))));  
+    return $app->redirect($app['url_generator']->generate('list', array('session_id' => session_id(), 'name' => shopshop_list_name(array_shift($dir['contents'])))));  
   }
 })->bind('auth');
 
+$app->get('/rebuild', function () use ($app) {
+  // Extract all data from the session, clear it and reinsert the data into the new session
+  $data = $app['session']->all();
+  $app['session']->invalidate();
+  $app['session']->replace($data);
+})->bind('rebuild');
+
 $app->get('/logout', function () use ($app) {
-  $app['session']->clear();
+  // We migrate so we keep session information available for future access
+  $app['session']->migrate();
+  
   return $app->redirect($app['url_generator']->generate('frontpage'));
 })->bind('logout');
 
-$app->get('/list/{name}', function ($name) use ($app) {
+$app->get('/{session_id}/list/{name}', function ($session_id, $name) use ($app) {
+  // Silex session storageonly allows setting session id if sessions do not use 
+  // cookies so we force it instead.
+  // https://github.com/symfony/symfony/blob/master/src/Symfony/Component/HttpFoundation/SessionStorage/NativeSessionStorage.php#L79
+  session_id($session_id);
   $app['oauth']->setToken($app['session']->get('oauth_tokens'));
   
   $plist = new CFPropertyList();
