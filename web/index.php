@@ -23,10 +23,7 @@ $app->register(new Silex\Extension\TwigExtension(), array(
 // This is currently only needed for Yaml support.
 $app['autoloader']->registerNamespace('Symfony', __DIR__.'/../vendor');
 
-// Silex session support is broken, so use regular session instead
-//https://github.com/fabpot/Silex/issues/112
-//$app->register(new Silex\Extension\SessionExtension());
-session_start();
+$app->register(new Silex\Extension\SessionExtension());
 
 $app->before(function () use ($app) {
   // Add routing helpers in Twig here as the request context must be defined.
@@ -49,19 +46,15 @@ $app->get('/', function () use ($app) {
 
 
 $app->get('/login', function () use ($app) {
-  // Silex session support is broken, so use regular session instead
-  //$app['session']->set('oauth_tokens', $app['oauth']->getRequestToken());
-  $_SESSION['oauth_tokens'] = $app['oauth']->getRequestToken();
+  $app['session']->set('oauth_tokens', $app['oauth']->getRequestToken());
   
   // Redirect to Dropbox auth URL with app auth URL as callback
   return $app->redirect($app['oauth']->getAuthorizeUrl($app['url_generator']->generate('auth', array(), TRUE)));
 })->bind('login');
 
 $app->get('/auth', function () use ($app) {
-  // Silex session support is broken, so use regular session instead
-  //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
-  $app['oauth']->setToken($_SESSION['oauth_tokens']);
-  $_SESSION['oauth_tokens'] = $app['oauth']->getAccessToken();
+  $app['oauth']->setToken($app['session']->get('oauth_tokens'));
+  $app['session']->set('oauth_tokens', $app['oauth']->getAccessToken());
   
   // We have a succesfull login so redirect to the first list
   $dir = $app['dropbox']->getMetaData('ShopShop',false);
@@ -71,15 +64,13 @@ $app->get('/auth', function () use ($app) {
 })->bind('auth');
 
 $app->get('/logout', function () use ($app) {
-  session_destroy();
+  $app['session']->clear();
   return $app->redirect($app['url_generator']->generate('frontpage'));
 })->bind('logout');
 
 $app->get('/list/{name}', function ($name) use ($app) {
-  // Silex session support is broken, so use regular session instead
-  //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
-  $app['oauth']->setToken($_SESSION['oauth_tokens']);
-
+  $app['oauth']->setToken($app['session']->get('oauth_tokens'));
+  
   $plist = new CFPropertyList();
   $plist->parse($app['dropbox']->getFile(shopshop_list_path($name)), CFPropertyList::FORMAT_BINARY);
 
