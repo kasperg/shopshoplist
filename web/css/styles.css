@@ -1,0 +1,217 @@
+/*	Less Framework 4 with 16/24 type presets
+    http://lessframework.com
+    by Joni Korpi
+    License: http://opensource.org/licenses/mit-license.php	*/
+
+
+
+/*	Resets
+    ------	*/
+
+html, body, div, span, object, iframe, h1, h2, h3, h4, h5, h6, 
+p, blockquote, pre, a, abbr, address, cite, code, del, dfn, em, 
+img, ins, kbd, q, samp, small, strong, sub, sup, var, b, i, hr, 
+dl, dt, dd, ol, ul, li, fieldset, form, label, legend, 
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figure, figcaption, hgroup, 
+menu, footer, header, nav, section, summary, time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+article, aside, canvas, figure, figure img, figcaption, hgroup,
+footer, header, nav, section, audio, video {
+    display: block;
+}
+
+a img {border: 0;}
+
+
+
+/*	Typography presets
+    ------------------	*/
+
+.gigantic {
+    font-size: 110px;
+    line-height: 120px;
+    letter-spacing: -2px;
+}
+
+.huge, h1 {
+    font-size: 68px;
+    line-height: 72px;
+    letter-spacing: -1px;
+}
+
+.large, h2 {
+    font-size: 42px;
+    line-height: 48px;
+}
+
+.bigger, h3 {
+    font-size: 26px;
+    line-height: 36px;
+}
+
+.big, h4 {
+    font-size: 22px;
+    line-height: 30px;
+}
+
+body {
+    font: 16px/24px Georgia, serif;
+}
+
+.small, small {
+    font-size: 13px;
+    line-height: 18px;
+}
+
+/* Selection colours (easy to forget) */
+
+::selection 	 	{background: rgb(255,255,158);}
+::-moz-selection 	{background: rgb(255,255,158);}
+img::selection 		{background: transparent;}
+img::-moz-selection	{background: transparent;}
+body {-webkit-tap-highlight-color: rgb(255,255,158);}
+
+/* General styles */
+
+body { margin: 0 auto; background: -moz-linear-gradient(top, #EFEFEF, #CFCFCF); background: -webkit-gradient(linear, left top, left bottom, from(#EFEFEF), to(#CFCFCF)); font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+h1,
+h2,
+h3 { margin-bottom: 12px; font-family: 'Covered By Your Grace', cursive; }
+h2,
+h3 { margin: 24px 0 12px;}
+
+a { color: #2180ca; text-decoration: none; border-bottom: 1px solid #2180ca;}
+
+p { margin: 12px 0;}
+
+li { padding-left: 24px; list-style: none outside; background: url(../img/bullet.png) no-repeat 6px 10px;}
+li.done { text-decoration: line-through; }
+
+h1 { display: relative; }
+h1 .subtitle { display: block; position: absolute; top: 90px; left: 240px; font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+.container { position: relative; background: #FFFF9E; background: -webkit-gradient(linear, left top, left bottom, from(#FFFF9E), color-stop(0.764, #FFFFB5)); -webkit-box-shadow: 0 5px 5px rgba(0, 0, 0, 0.235); -moz-box-shadow: 0 5px 5px rgba(0, 0, 0, 0.235); box-shadow: 0 3px 3px rgba(0, 0, 0, 0.235);); -webkit-transform: rotate(-0.5deg); -moz-transform: rotate(-0.5deg); transform: rotate(-0.5deg);}
+
+.content { position: relative; }
+
+.button, 
+.button:visited { background: #222; display: inline-block; padding: 5px 10px 6px 10px; color: #fff; text-decoration: none; -moz-border-radius: 5px; -webkit-border-radius: 5px; -moz-box-shadow: 0 1px 3px rgba(0,0,0,0.5); -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.5); text-shadow: 0 -1px 1px rgba(0,0,0,0.25); border-bottom: 1px solid rgba(0,0,0,0.25); position: relative; cursor: pointer; }
+.button:active { top: 1px; }
+
+.login { text-align: center; }
+.login p { text-align: left; }
+
+.button.dropbox { padding: 5px 10px 6px 50px; background: #2180ca url(../img/dropbox.png) no-repeat 5px center; }
+
+.footer { margin-top: 24px; -moz-opacity: 0.4; opacity: 0.4; text-align: right; }
+
+
+/*		Default Layout: 992px. 
+        Gutters: 24px.
+        Outer margins: 48px.
+        Leftover space for scrollbars @1024px: 32px.
+-------------------------------------------------------------------------------
+cols    1     2      3      4      5      6      7      8      9      10
+px      68    160    252    344    436    528    620    712    804    896    */
+
+body {
+    width: 896px;
+    padding: 72px 48px 84px;
+    background: rgb(232,232,232);
+    color: rgb(60,60,60);
+    -webkit-text-size-adjust: 100%; /* Stops Mobile Safari from auto-adjusting font-sizes */
+}
+
+.container { padding: 36px 0px; }
+.header,
+.section,
+.footer { padding: 0 24px; }
+.section { width: 388px; }
+.login { padding-top: 24px; }
+.what { position: absolute; top: 0; right: 0;}
+.security { position: absolute; right: 0; top: 202px; }
+
+/*		Tablet Layout: 768px.
+        Gutters: 24px.
+        Outer margins: 28px.
+        Inherits styles from: Default Layout.
+-----------------------------------------------------------------
+cols    1     2      3      4      5      6      7      8
+px      68    160    252    344    436    528    620    712    */
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    
+    body {
+        width: 712px;
+        padding: 48px 28px 60px;
+    }
+    
+    .section { width: 296px; }
+    .security { top: 249px; }
+}
+
+
+
+/*		Mobile Layout: 320px.
+        Gutters: 24px.
+        Outer margins: 34px.
+        Inherits styles from: Default Layout.
+---------------------------------------------
+cols    1     2      3
+px      68    160    252    */
+
+@media only screen and (max-width: 767px) {
+    
+    body {
+        width: 252px;
+        padding: 48px 34px 60px;
+    }
+    
+    .container { padding: 18px 0px; }
+    .section { width: auto; padding: 0 12px; position: static; }  
+    h1 { font-size: 42px; line-height: 48px; }
+    h1 .subtitle { display: none; }
+    h2 { font-size: 26px; line-height: 36px; }
+
+}
+
+
+
+/*		Wide Mobile Layout: 480px.
+        Gutters: 24px.
+        Outer margins: 22px.
+        Inherits styles from: Default Layout, Mobile Layout.
+------------------------------------------------------------
+cols    1     2      3      4      5
+px      68    160    252    344    436    */
+
+@media only screen and (min-width: 480px) and (max-width: 767px) {
+    
+    body {
+        width: 436px;
+        padding: 36px 22px 48px;
+    }
+
+}
+
+
+/*	Retina media query.
+    Overrides styles for devices with a 
+    device-pixel-ratio of 2+, such as iPhone 4.
+-----------------------------------------------    */
+
+@media 
+    only screen and (-webkit-min-device-pixel-ratio: 2),
+    only screen and (min-device-pixel-ratio: 2) {
+    
+    body {
+    
+    }
+    
+}

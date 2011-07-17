@@ -1,6 +1,6 @@
 <?php 
 
-use Symfony\Component\ClassLoader\UniversalClassLoader;
+use Symfony\Bridge\Twig\Extension\RoutingExtension;
 use Symfony\Component\Yaml\Yaml;
 
 // Setup Dropbox autoloader
@@ -14,6 +14,11 @@ require_once __DIR__.'/../vendor/silex/silex.phar';
 
 $app = new Silex\Application();
 $app->register(new Silex\Extension\UrlGeneratorExtension());
+$app->register(new Silex\Extension\TwigExtension(), array(
+    'twig.path'       => __DIR__.'/../views',
+    'twig.class_path' => __DIR__.'/../vendor/twig/lib',
+));
+
 // Register autoloading of Symfony components.
 // This is currently only needed for Yaml support.
 $app['autoloader']->registerNamespace('Symfony', __DIR__.'/../vendor');
@@ -24,6 +29,9 @@ $app['autoloader']->registerNamespace('Symfony', __DIR__.'/../vendor');
 session_start();
 
 $app->before(function () use ($app) {
+  // Add routing helpers in Twig here as the request context must be defined.
+  $app['twig']->addExtension(new RoutingExtension($app['url_generator']));
+  
   // Load the configuration. Fallback to default using environment variabels.
   // These can be provided by PagodaBox.
   $config_path = __DIR__ . '/../config/';
@@ -36,7 +44,7 @@ $app->before(function () use ($app) {
 });
 
 $app->get('/', function () use ($app) {
-    return '<h1>Frontpage</h1><a href="' . $app['url_generator']->generate('login')  . '">Log in using Dropbox</a>';
+    return $app['twig']->render('front.twig');
 })->bind('frontpage');
 
 
@@ -55,31 +63,12 @@ $app->get('/auth', function () use ($app) {
   $app['oauth']->setToken($_SESSION['oauth_tokens']);
   $_SESSION['oauth_tokens'] = $app['oauth']->getAccessToken();
   
-  // We have a succesfull login so redirect to the lists page
-  return $app->redirect($app['url_generator']->generate('lists'));
-})->bind('auth');
-
-$app->get('/lists', function () use ($app) {
-  // Silex session support is broken, so use regular session instead
-  //$app['oauth']->setToken($app['session']->get('oauth_tokens'));
-  $app['oauth']->setToken($_SESSION['oauth_tokens']);
-  
-  $output = '';
+  // We have a succesfull login so redirect to the first list
   $dir = $app['dropbox']->getMetaData('ShopShop',false);
-  // If we only have a single list it makes little sense to show a list of them.
-  // Redirect to the list instead.
-  if (sizeof($dir['contents']) == 1) {
-    return $app->redirect($app['url_generator']->generate('list', array('name' => shopshop_list_name(array_shift($dir['contents'])))));
-  } else {
-    $output = '<h1>Lists</h1>';
-    
-    $output .= '<ul>';
-    foreach ($dir['contents'] as $file) {
-      $output .= '<li><a href="' . $app['url_generator']->generate('list', array('name' => shopshop_list_name($file))) . '">' . shopshop_list_name($file) . '</li>';
-    }
-    return $output .= '</ul>';
+  if (sizeof($dir['contents'] > 0)) {
+    return $app->redirect($app['url_generator']->generate('list', array('name' => shopshop_list_name(array_shift($dir['contents'])))));  
   }
-})->bind('lists');
+})->bind('auth');
 
 $app->get('/list/{name}', function ($name) use ($app) {
   // Silex session support is broken, so use regular session instead
@@ -89,17 +78,21 @@ $app->get('/list/{name}', function ($name) use ($app) {
   $plist = new CFPropertyList();
   $plist->parse($app['dropbox']->getFile(shopshop_list_path($name)), CFPropertyList::FORMAT_BINARY);
 
-  $output = '<h1>' . $name . '</h1>';
-
-  $output .= '<ul>';
+  $entries = array();
   $plist = $plist->toArray();
   foreach ($plist['shoppingList'] as $entry) {
-    $output .= '<li class="' . (($entry['done']) ? 'done' : '') . '">' .
-                  (($entry['count']) ? '<span class="count">' . $entry['count'] . '</span> ' : '') . 
-                  '<span class="name">' . $entry['name'] . '</span>
-                </li>';
+    $entries[] = array('name' => $entry['name'],
+                       'count' => (($entry['count']) ? $entry['count'] : FALSE),
+                       'done' => (($entry['done']) ? 'done' : ''));
   }
-  return $output .= '</ul>';
+  
+  $lists = array();
+  $dir = $app['dropbox']->getMetaData('ShopShop',false);
+  foreach ($dir['contents'] as $file) {
+    $lists[] = shopshop_list_name($file);
+  }
+  
+  return $app['twig']->render('list.twig', array('name' => $name, 'entries' => $entries, 'lists' => $lists));
 })->bind('list');
 
 $app->run();

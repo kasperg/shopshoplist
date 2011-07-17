@@ -4,3 +4,6 @@
 [submodule "vendor/cfpropertylist"]
 	path = vendor/cfpropertylist
 	url = https://github.com/rodneyrehm/CFPropertyList.git
+[submodule "vendor/twig"]
+	path = vendor/twig
+	url = https://github.com/fabpot/Twig.git

@@ -1,0 +1,61 @@
+{% extends "layout.twig" %}
+
+{% block pagetitle %}ShopShopList — shop with your iFriends{% endblock %}
+
+{% block title %}ShopShopList <span class="subtitle big">shop with your iFriends</span>{% endblock %}
+
+{% block content %}
+  <div class="login section">
+    <a class="button big dropbox" href="{{ path('login') }}">Login using Dropbox</a>
+    <p class="small">
+      ShopShopList uses the ShopShop Dropbox synchronization feature. When you log into ShopShopList you grant permission for the application to access files on your Dropbox account.
+    </p>
+  </div>
+  <div class="what section">
+    <h2>What is it?</h2>
+    <p>
+      ShopShopList lets you share shopping lists created by <a href="http://nschum.de/apps/ShopShop/">ShopShop</a> — the awesome and free shopping list app for the iPhone and iPad — over the web using <a href="https://www.dropbox.com/">Dropbox</a>. Access your shopping lists on any device — your phone, Android tablet, Blackberry or PC.
+    </p>
+  </div>
+  <div class="featrues section">
+    <h2>Features</h2>
+    <p>
+        ShopShopList currently supports:
+    </p>
+    <ul>
+      <li>Fetching your shopping lists from Dropbox</li>
+      <li>Showing which entries have been completed</li>
+    </ul>
+    <p>Future updates might include:
+    <ul>
+      <li>Creating, editing and deleting entries</li>
+    </ul>
+    <p>
+      Got suggestions? <a href="kasper.garnaes@gmail.com">Send a mail!</a>
+    </p>
+  </div>
+  <div class="security section">
+    <h2>Security</h2>
+    <p>
+      ShopShopList takes your privacy and security seriously.
+    </p>
+    <ul>
+      <li>ShopShopList does not store your Dropbox password. The application accesses your account using the <a href="http://en.wikipedia.org/wiki/OAuth">OAuth standard</a> — just like when apps integrate with Twitter and Facebook. Want to stop using ShopShopList? You can always <a href="https://www.dropbox.com/account#applications">revoke access from your Dropbox settings</a>.</li>
+      <li>ShopShopList only reads from your ShopShop folder. Your data is private.</li>
+      <li>Still unsure? <a href="https://github.com/kasperg/shopshoplist">Look through the code</a> or host your own version. This site is hosted on <a href="http://www.pagodabox.com/">Pagoda Box</a> and it is easy to create an account and spin up another instance.</li>
+    </ul>
+  </div>
+  <div class="credits section">
+    <h2>Credits</h2>
+    <p>
+      ShopShopList builds on the great work of a lot of other people!
+    </p>
+    <ul>
+        <li><a href="http://nschum.de/apps/ShopShop/">ShopShop</a>: Shopping list application for iOS by Nikolaj Schumacher</li>
+        <li><a href="http://code.google.com/p/dropbox-php/">Dropbox for PHP</a>: Access files using OAuth and the Dropbox API</li>
+        <li><a href="https://github.com/rodneyrehm/CFPropertyList">CFPropertyList</a>: PHP Implementation of Apple's PList</li>
+        <li><a href="silex-project.org">Silex</a>, <a href="twig-project.org">Twig</a> and <a href="http://components.symfony-project.org/yaml/">Symfony Yaml</a>: Great PHP libraries for web development</li>
+        <li><a href="">Less Framework</a>: CSS grid system for adaptive design</li>
+    </ul>
+  </div>
+{% endblock %}
