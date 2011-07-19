@@ -40,23 +40,25 @@ $app->before(function () use ($app) {
     return new Pdo($dsn, $app['config']['database']['user'], $app['config']['database']['password']);
   });
 
-
   // Use database for session storage
   $app['session.storage'] = $app->share(function () use ($app) {
-    return new Symfony\Component\HttpFoundation\SessionStorage\PdoSessionStorage( $app['pdo'], 
-                                                                                  $app['session.storage.options'], 
-                                                                                  array('db_table' =>     'session',
-                                                                                        'db_id_col' =>    'id',
-                                                                                        'db_data_col' =>  'data',
-                                                                                        'db_time_col' =>  'timestamp'));
+    return new Symfony\Component\HttpFoundation\SessionStorage\PdoSessionStorage(
+      $app['pdo'], 
+      $app['session.storage.options'], 
+      array('db_table' =>     'session',
+            'db_id_col' =>    'id',
+            'db_data_col' =>  'data',
+            'db_time_col' =>  'timestamp'));
   });
 
-  $app->register(new Silex\Extension\UrlGeneratorExtension());
-  // Reguster Twig for templating
+  // Register Twig for templating
   $app->register(new Silex\Extension\TwigExtension(), array(
       'twig.path'       => __DIR__.'/../views',
       'twig.class_path' => __DIR__.'/../vendor/twig/lib',
   ));
+  
+  // Use UrlGenerator for easier URL generation in controller and templates
+  $app->register(new Silex\Extension\UrlGeneratorExtension());
   $app['twig']->addExtension(new Symfony\Bridge\Twig\Extension\RoutingExtension($app['url_generator']));
 
   // Setup Dropbox OAuth access
@@ -108,6 +110,7 @@ $app->get('/{session_id}/list/{name}', function ($session_id, $name) use ($app) 
   session_id($session_id);
   $app['oauth']->setToken($app['session']->get('oauth_tokens'));
   
+  // Retrieve all entries in the current list
   $plist = new CFPropertyList();
   $plist->parse($app['dropbox']->getFile(shopshop_list_path($name)), CFPropertyList::FORMAT_BINARY);
 
@@ -119,6 +122,7 @@ $app->get('/{session_id}/list/{name}', function ($session_id, $name) use ($app) 
                        'done' => (($entry['done']) ? 'done' : ''));
   }
   
+  // Retrieve all lists
   $lists = array();
   $dir = $app['dropbox']->getMetaData('ShopShop',false);
   foreach ($dir['contents'] as $file) {
