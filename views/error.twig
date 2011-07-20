@@ -1,0 +1,19 @@
+{% extends "layout.twig" %}
+
+{% block pagetitle %}An error occured — ShopShopList{% endblock %}
+
+{% block title %}An error occured{% endblock %}
+
+{% block content %}
+  {% if messages|length > 0 %}
+    <div class="section message">
+      {% autoescape false %}
+      {% for message in messages %}
+        <p>
+          {{ message }}
+        </p>
+      {% endfor %}
+      {% endautoescape %}
+    </div>
+  {% endif %}
+{% endblock %}

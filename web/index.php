@@ -132,6 +132,16 @@ $app->get('/{session_id}/list/{name}', function ($session_id, $name) use ($app) 
   return $app['twig']->render('list.twig', array('name' => $name, 'entries' => $entries, 'lists' => $lists));
 })->bind('list');
 
+$app->error(function (\Exception $e) use ($app) {
+  $messages = array();
+  
+  if ($e instanceof \PDOException && $e->getCode() == 1049) {
+    // Unknown database
+  }
+  
+  return $app['twig']->render('error.twig', array('messages' => $messages, 'exception' => $e));
+});
+
 $app->run();
 
 function shopshop_list_name($file) {
