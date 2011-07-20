@@ -13,6 +13,13 @@
       <h1>{% block title %}{% endblock %}</h1>
     </div>
     <div class="content">
+        <div class="section flash">
+          {% for flash in app.session.flashes %}
+            <p>
+                {{ flash }}
+            </p>
+          {% endfor %}
+        </div>
         {% block content %}{% endblock %}
     </div>
     <div class="footer small">

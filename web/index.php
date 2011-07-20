@@ -67,9 +67,38 @@ $app->before(function () use ($app) {
 });
 
 $app->get('/', function () use ($app) {
-    return $app['twig']->render('front.twig');
+  // Ensure database has been setup
+  $tables = array('session');
+  if ($result = $app['pdo']->query('SHOW TABLES')) {
+    while($table = $result->fetchColumn(0)) {
+      if (($key = array_search($table, $tables)) !== FALSE) {
+        unset($tables[$key]);
+      }
+    }
+  }
+  
+  if (sizeof($tables) > 0) {
+    throw new DatabaseException('Missing tables: '. implode(', ', $tables));
+  }
+  
+  return $app['twig']->render('front.twig');
 })->bind('frontpage');
 
+$app->get('/setup', function () use ($app) {
+  // (Re)create database structure for storing sessions
+  $app['pdo']->query('DROP TABLE `session`');
+  $app['pdo']->query('CREATE TABLE `session` (
+                        `id` varchar(255) NOT NULL,
+                        `data` text NOT NULL,
+                        `timestamp` int(11) NOT NULL,
+                      PRIMARY KEY (`id`),
+                      UNIQUE KEY `session_id_idx` (`id`))
+                      ENGINE=InnoDB DEFAULT CHARSET=utf8');
+  
+  $app['session']->start();
+  $app['session']->setFlash('success', 'The datebase has been initialized successfully.');
+  return $app->redirect($app['url_generator']->generate('frontpage'));
+})->bind('setup');
 
 $app->get('/login', function () use ($app) {
   $app['session']->set('oauth_tokens', $app['oauth']->getRequestToken());
@@ -137,6 +166,9 @@ $app->error(function (\Exception $e) use ($app) {
   
   if ($e instanceof \PDOException && $e->getCode() == 1049) {
     // Unknown database
+  } elseif ($e instanceof DatabaseException) {
+    $messages[] = 'It seems like the database has not been initialized.';
+    $messages[] = 'Have you run <a href="' . $app['url_generator']->generate('setup') . '">setup</a> yet?';
   }
   
   return $app['twig']->render('error.twig', array('messages' => $messages, 'exception' => $e));
@@ -151,3 +183,5 @@ function shopshop_list_name($file) {
 function shopshop_list_path($name) {
   return '/ShopShop/' . $name . '.shopshop';
 }
+
+class DatabaseException extends \Exception {}
