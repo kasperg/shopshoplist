@@ -173,12 +173,12 @@ px      68    160    252    */
         padding: 48px 34px 60px;
     }
     
-    .container { padding: 18px 0px; }
     .section { width: auto; padding: 0 12px; position: static; }  
     h1 { font-size: 42px; line-height: 48px; }
     h1 .subtitle { display: none; }
     h2 { font-size: 26px; line-height: 36px; }
-
+    
+    .button.dropbox { font-size: 16px; line-height: 24px; }
 }
 
 
@@ -198,7 +198,30 @@ px      68    160    252    344    436    */
         padding: 36px 22px 48px;
     }
 
+    .button.dropbox { font-size: 22px; line-height: 30px; }
 }
+
+
+
+/*		Narrow Mobile Layout: 320px.
+        Gutters: 24px.
+        Outer margins: 34px.
+        Inherits styles from: Default Layout, Mobile Layout.
+---------------------------------------------
+cols    1     2      3
+px      68    160    252    */
+
+@media only screen and (max-width: 479px) {
+    
+    body {
+        background: #FFFF9E; background: -webkit-gradient(linear, left top, left bottom, from(#FFFF9E), color-stop(0.764, #FFFFB5));
+    }
+    
+    .container { margin: 0; padding: 0; background: transparent; -webkit-box-shadow: none; -moz-box-shadow: none; box-shadow: none; -webkit-transform: none; -moz-transform: none; transform: none; }
+    
+    .button.dropbox { font-size: 16px; line-height: 24px; }
+}
+
 
 
 /*	Retina media query.
