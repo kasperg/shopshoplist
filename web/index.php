@@ -14,8 +14,7 @@ $app = new Silex\Application();
 
 // Setup session handling.
 // This needs to be done before the app is run.
-$app['autoloader']->registerNamespace('LazySession', __DIR__.'/../vendor');
-$app->register(new LazySession\LazySessionExtension());
+$app->register(new Silex\Extension\SessionExtension());
 
 $app->before(function () use ($app) {
   // Register autoloading of Symfony components.
@@ -108,25 +107,28 @@ $app->get('/login', function () use ($app) {
 })->bind('login');
 
 $app->get('/auth', function () use ($app) {
+  $app['session']->start();
   $app['oauth']->setToken($app['session']->get('oauth_tokens'));
   $app['session']->set('oauth_tokens', $app['oauth']->getAccessToken());
   
   // We have a succesfull login so redirect to the first list
   $dir = $app['dropbox']->getMetaData('ShopShop',false);
   if (sizeof($dir['contents'] > 0)) {
-    return $app->redirect($app['url_generator']->generate('list', array('session_id' => session_id(), 'name' => shopshop_list_name(array_shift($dir['contents'])))));  
+    return $app->redirect($app['url_generator']->generate('list', array('session_id' => $app['session']->getId(), 'name' => shopshop_list_name(array_shift($dir['contents'])))));  
   }
 })->bind('auth');
 
 $app->get('/rebuild', function () use ($app) {
   // Extract all data from the session, clear it and reinsert the data into the new session
   $data = $app['session']->all();
+  $app['session']->start();
   $app['session']->invalidate();
   $app['session']->replace($data);
 })->bind('rebuild');
 
 $app->get('/logout', function () use ($app) {
   // We migrate so we keep session information available for future access
+  $app['session']->start();
   $app['session']->migrate();
   
   return $app->redirect($app['url_generator']->generate('frontpage'));
@@ -137,6 +139,7 @@ $app->get('/{session_id}/list/{name}', function ($session_id, $name) use ($app) 
   // cookies so we force it instead.
   // https://github.com/symfony/symfony/blob/master/src/Symfony/Component/HttpFoundation/SessionStorage/NativeSessionStorage.php#L79
   session_id($session_id);
+  $app['session']->start();
   $app['oauth']->setToken($app['session']->get('oauth_tokens'));
   
   // Retrieve all entries in the current list
