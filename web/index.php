@@ -169,8 +169,11 @@ $app->error(function (\Exception $e) use ($app) {
   if ($e instanceof \PDOException && $e->getCode() == 1049) {
     // Unknown database
   } elseif ($e instanceof DatabaseException) {
-    $messages[] = 'It seems like the database has not been initialized.';
-    $messages[] = 'Have you run <a href="' . $app['url_generator']->generate('setup') . '">setup</a> yet?';
+    $messages[] = 'It seems like the database has not been initialized yet.';
+    $messages[] = 'Did you run <a href="' . $app['url_generator']->generate('setup') . '">setup</a>?';
+  } else {
+    $messages[] = $e->getMessage();
+    $messages[] = $e->getTraceAsString();
   }
   
   return $app['twig']->render('error.twig', array('messages' => $messages, 'exception' => $e));

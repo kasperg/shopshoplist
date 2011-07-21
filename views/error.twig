@@ -7,13 +7,11 @@
 {% block content %}
   {% if messages|length > 0 %}
     <div class="section message">
-      {% autoescape false %}
       {% for message in messages %}
         <p>
-          {{ message }}
+          {{ message|raw }}
         </p>
       {% endfor %}
-      {% endautoescape %}
-    </div>
+    </div>    
   {% endif %}
 {% endblock %}
