@@ -118,13 +118,12 @@ $app->get('/auth', function () use ($app) {
   }
 })->bind('auth');
 
-$app->get('/rebuild', function () use ($app) {
+$app->get('/reset', function () use ($app) {
   // Extract all data from the session, clear it and reinsert the data into the new session
-  $data = $app['session']->all();
   $app['session']->start();
   $app['session']->invalidate();
-  $app['session']->replace($data);
-})->bind('rebuild');
+  return $app->redirect($app['url_generator']->generate('login'));
+})->bind('reset');
 
 $app->get('/logout', function () use ($app) {
   // We migrate so we keep session information available for future access

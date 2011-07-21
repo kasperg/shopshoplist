@@ -31,4 +31,18 @@
       </ul>
     </div>
   {% endif %}
+  <div class="sharing section">
+    <h2>Sharing</h2>
+    <p>
+      Bookmark this page or share the following URL for instant access to your lists:
+      <a href="{{ app.request.uri }}">{{ app.request.uri }}</a>
+    </p>
+    <p>
+      Concerned someone is spying on your lists?
+    </p>
+    <a class="button" href="{{ path('reset') }}">Reset sharing</a>
+    <p class="small">
+      Resetting disables access to your lists from previously stored URLs. If you have bookmarked this page you need to update the bookmark as well.
+    </p>
+  </div>
 {% endblock %}
